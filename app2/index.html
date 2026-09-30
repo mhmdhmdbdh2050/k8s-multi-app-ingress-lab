@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Containerized | Docker & Kubernetes</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --docker-blue: #2496ed;
+            --k8s-blue: #326ce5;
+            --dark: #07111f;
+            --dark-2: #0b1728;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --card: rgba(255,255,255,0.06);
+            --border: rgba(255,255,255,0.12);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 15% 20%, rgba(36,150,237,0.18), transparent 30%),
+                radial-gradient(circle at 85% 70%, rgba(50,108,229,0.18), transparent 30%),
+                linear-gradient(135deg, var(--dark), var(--dark-2));
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+
+        .background {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: 0.25;
+            animation: move 12s infinite alternate ease-in-out;
+        }
+
+        .blob.one {
+            width: 300px;
+            height: 300px;
+            background: #2496ed;
+            top: 5%;
+            left: -100px;
+        }
+
+        .blob.two {
+            width: 350px;
+            height: 350px;
+            background: #326ce5;
+            right: -120px;
+            bottom: 5%;
+            animation-delay: 2s;
+        }
+
+        @keyframes move {
+            from {
+                transform: translate(0, 0);
+            }
+
+            to {
+                transform: translate(100px, -50px);
+            }
+        }
+
+        /* Navigation */
+
+        nav {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            padding: 25px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #2496ed, #326ce5);
+            box-shadow: 0 10px 30px rgba(36,150,237,0.35);
+        }
+
+        nav a {
+            color: var(--muted);
+            text-decoration: none;
+            margin-left: 25px;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            color: white;
+        }
+
+        /* Hero */
+
+        .hero {
+            position: relative;
+            z-index: 2;
+            min-height: 75vh;
+            padding: 70px 8% 100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 70px;
+        }
+
+        .hero-content {
+            max-width: 650px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 16px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: rgba(255,255,255,0.05);
+            color: #bfdbfe;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        h1 {
+            font-size: clamp(50px, 7vw, 90px);
+            line-height: 0.95;
+            letter-spacing: -4px;
+            margin-bottom: 30px;
+        }
+
+        h1 span {
+            background: linear-gradient(90deg, #2496ed, #60a5fa, #326ce5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--muted);
+            font-size: 20px;
+            line-height: 1.7;
+            max-width: 600px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 35px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .primary {
+            color: white;
+            background: linear-gradient(135deg, #2496ed, #326ce5);
+            box-shadow: 0 15px 35px rgba(36,150,237,0.25);
+        }
+
+        .secondary {
+            color: white;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .btn:hover {
+            transform: translateY(-4px);
+        }
+
+        /* Docker graphic */
+
+        .docker-stage {
+            width: 420px;
+            height: 420px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .glow {
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: rgba(36,150,237,0.15);
+            filter: blur(30px);
+        }
+
+        .docker-card {
+            position: relative;
+            width: 300px;
+            height: 260px;
+            border-radius: 30px;
+            background: linear-gradient(
+                145deg,
+                rgba(255,255,255,0.12),
+                rgba(255,255,255,0.03)
+            );
+            border: 1px solid rgba(255,255,255,0.18);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .docker-icon {
+            font-size: 105px;
+            filter: drop-shadow(0 15px 25px rgba(36,150,237,0.4));
+        }
+
+        .docker-card h2 {
+            margin-top: 10px;
+            font-size: 28px;
+        }
+
+        .docker-card p {
+            color: var(--muted);
+            margin-top: 8px;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-18px);
+            }
+        }
+
+        /* Floating tech icons */
+
+        .floating {
+            position: absolute;
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+            font-size: 28px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .f1 {
+            top: 20px;
+            right: 20px;
+        }
+
+        .f2 {
+            bottom: 30px;
+            left: 15px;
+            animation-delay: 1s;
+        }
+
+        .f3 {
+            top: 100px;
+            left: 0;
+            animation-delay: 0.5s;
+        }
+
+        /* Stats */
+
+        .stats {
+            position: relative;
+            z-index: 2;
+            padding: 0 8% 80px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .stat {
+            padding: 30px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--card);
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-icon {
+            font-size: 35px;
+            margin-bottom: 15px;
+        }
+
+        .stat h3 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .stat p {
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        /* Architecture */
+
+        .architecture {
+            position: relative;
+            z-index: 2;
+            padding: 80px 8%;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 42px;
+            margin-bottom: 15px;
+        }
+
+        .section-description {
+            color: var(--muted);
+            max-width: 650px;
+            margin: auto;
+            line-height: 1.6;
+        }
+
+        .pipeline {
+            max-width: 950px;
+            margin: 60px auto 0;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .step {
+            position: relative;
+            padding: 30px 20px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--card);
+        }
+
+        .step-number {
+            width: 45px;
+            height: 45px;
+            margin: auto auto 15px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #2496ed, #326ce5);
+            font-weight: bold;
+        }
+
+        .step h3 {
+            margin-bottom: 8px;
+        }
+
+        .step p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Footer */
+
+        footer {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 60px 20px 40px;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+        }
+
+        footer strong {
+            color: white;
+        }
+
+        .heart {
+            color: #f43f5e;
+        }
+
+        /* Responsive */
+
+        @media (max-width: 900px) {
+
+            nav {
+                padding: 20px;
+            }
+
+            nav div:last-child {
+                display: none;
+            }
+
+            .hero {
+                padding: 50px 20px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .hero p {
+                margin: auto;
+            }
+
+            .buttons {
+                justify-content: center;
+            }
+
+            .docker-stage {
+                width: 320px;
+                height: 320px;
+            }
+
+            .stats {
+                padding: 20px;
+                grid-template-columns: 1fr;
+            }
+
+            .pipeline {
+                grid-template-columns: 1fr;
+            }
+
+            .architecture {
+                padding: 60px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="background">
+        <div class="blob one"></div>
+        <div class="blob two"></div>
+    </div>
+
+    <!-- Navigation -->
+
+    <nav>
+
+        <div class="logo">
+            <div class="logo-icon">🐳</div>
+            Containerized
+        </div>
+
+        <div>
+            <a href="#architecture">Architecture</a>
+            <a href="#about">About</a>
+        </div>
+
+    </nav>
+
+
+    <!-- Hero -->
+
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <div class="badge">
+                🟢 Container is running
+            </div>
+
+            <h1>
+                Build.<br>
+                Ship.<br>
+                <span>Scale.</span>
+            </h1>
+
+            <p>
+                A modern containerized application powered by
+                Docker and orchestrated with Kubernetes.
+            </p>
+
+            <div class="buttons">
+
+                <a href="#architecture" class="btn primary">
+                    Explore Architecture →
+                </a>
+
+                <a href="#about" class="btn secondary">
+                    Learn More
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- Docker Graphic -->
+
+        <div class="docker-stage">
+
+            <div class="glow"></div>
+
+            <div class="floating f1">☸️</div>
+            <div class="floating f2">🚀</div>
+            <div class="floating f3">⚙️</div>
+
+            <div class="docker-card">
+
+                <div class="docker-icon">
+                    🐳
+                </div>
+
+                <h2>Docker</h2>
+
+                <p>Containerized Application</p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- Stats -->
+
+    <section class="stats">
+
+        <div class="stat">
+
+            <div class="stat-icon">🐳</div>
+
+            <h3>Docker</h3>
+
+            <p>
+                Application packaged inside a lightweight
+                and portable container.
+            </p>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-icon">☸️</div>
+
+            <h3>Kubernetes</h3>
+
+            <p>
+                Container orchestration, scaling and
+                service management.
+            </p>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-icon">🚀</div>
+
+            <h3>DevOps</h3>
+
+            <p>
+                Automated deployment and reliable
+                infrastructure workflows.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- Architecture -->
+
+    <section class="architecture" id="architecture">
+
+        <h2 class="section-title">
+            From Code to Production
+        </h2>
+
+        <p class="section-description">
+            This application demonstrates the fundamental
+            DevOps container workflow.
+        </p>
+
+
+        <div class="pipeline">
+
+            <div class="step">
+
+                <div class="step-number">1</div>
+
+                <h3>Code</h3>
+
+                <p>
+                    Build the application and
+                    create the HTML interface.
+                </p>
+
+            </div>
+
+
+            <div class="step">
+
+                <div class="step-number">2</div>
+
+                <h3>Docker</h3>
+
+                <p>
+                    Package the application
+                    into a Docker image.
+                </p>
+
+            </div>
+
+
+            <div class="step">
+
+                <div class="step-number">3</div>
+
+                <h3>Kubernetes</h3>
+
+                <p>
+                    Deploy and manage containers
+                    using Kubernetes.
+                </p>
+
+            </div>
+
+
+            <div class="step">
+
+                <div class="step-number">4</div>
+
+                <h3>Ingress</h3>
+
+                <p>
+                    Route external traffic to
+                    the correct application.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- About -->
+
+    <section class="architecture" id="about">
+
+        <h2 class="section-title">
+            Container Ready 🚀
+        </h2>
+
+        <p class="section-description">
+            This website is designed to run inside an
+            Nginx container and become part of a
+            Kubernetes multi-application environment.
+        </p>
+
+    </section>
+
+
+    <!-- Footer -->
+
+    <footer>
+
+        <p>
+            Built with <strong>Docker</strong> 🐳 +
+            <strong>Kubernetes</strong> ☸️
+            <span class="heart">♥</span>
+        </p>
+
+        <p style="margin-top: 10px;">
+            Kubernetes Multi-App Ingress Lab
+        </p>
+
+    </footer>
+
+</body>
+</html>

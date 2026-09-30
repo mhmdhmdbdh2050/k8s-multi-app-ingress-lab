@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: multi-app-ingress
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: ing-1240743497.eu-north-1.elb.amazonaws.com
+    http:
+      paths:
+      - path: /mohamed
+        pathType: Prefix
+        backend:
+          service:
+            name: app1-svc
+            port:
+              number: 2000
+
+      - path: /app2
+        pathType: Prefix
+        backend:
+          service:
+            name: app2-svc
+            port:
+              number: 2500
+
+      - path: /tala
+        pathType: Prefix
+        backend:
+          service:
+            name: app3-service
+            port:
+              number: 9000
