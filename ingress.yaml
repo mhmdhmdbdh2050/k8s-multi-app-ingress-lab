@@ -3,11 +3,12 @@ kind: Ingress
 metadata:
   name: multi-app-ingress
   namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx
   rules:
-  - host: ing-1240743497.eu-north-1.elb.amazonaws.com
-    http:
+  - http:
       paths:
       - path: /mohamed
         pathType: Prefix
