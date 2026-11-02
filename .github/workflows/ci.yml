@@ -1,0 +1,43 @@
+name: Validate Kubernetes lab
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-app-images:
+    name: Build application images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Build app1
+        run: docker build --tag app1:v1 ./app1
+
+      - name: Build app2
+        run: docker build --tag app2:v1 ./app2
+
+      - name: Build app3
+        run: docker build --tag app3:v1 ./app3
+
+  validate-manifests:
+    name: Validate Kubernetes manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.27"
+
+      - name: Install Kubeconform
+        run: go install github.com/yannh/kubeconform/cmd/kubeconform@v0.6.7
+
+      - name: Validate deployments, services, and ingress
+        run: kubeconform -strict -summary app1/deployment-app1.yml app2/deployment-app2.yml app3/deployment-app3.yml ingress.yaml

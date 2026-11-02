@@ -1,118 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mohamed • Cloud Workspace</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Neutral application page for a Kubernetes ingress routing lab.">
+  <title>Application 1 | Kubernetes Ingress Lab</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body {
-      background: radial-gradient(circle at top, #1a233a 0%, #080d1a 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #e2e8f0;
-      padding: 20px;
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #08111f;
+      color: #e5eefb;
     }
-    .card {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(16px);
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 14% 12%, rgba(36, 150, 237, .2), transparent 38%),
+        radial-gradient(circle at 88% 86%, rgba(50, 108, 229, .18), transparent 36%),
+        #08111f;
+    }
+    main {
+      width: min(760px, 100%);
+      padding: clamp(24px, 6vw, 48px);
+      border: 1px solid #29445f;
       border-radius: 24px;
-      padding: 40px;
-      max-width: 520px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      background: rgba(16, 30, 48, .94);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .35);
     }
     .badge {
       display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #34d399;
-      padding: 6px 16px;
-      border-radius: 9999px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #123c35;
+      color: #7ce3c1;
       font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 24px;
+      letter-spacing: .02em;
     }
-    .badge-dot {
-      width: 8px;
-      height: 8px;
-      background: #10b981;
-      border-radius: 50%;
-      box-shadow: 0 0 10px #10b981;
-    }
-    h1 {
-      font-size: 32px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 12px;
-    }
-    p.subtitle {
-      color: #94a3b8;
-      font-size: 15px;
-      line-height: 1.6;
-      margin-bottom: 30px;
-    }
-    .info-grid {
+    h1 { margin: 22px 0 12px; font-size: clamp(2rem, 6vw, 3.4rem); }
+    p { color: #b6c7da; line-height: 1.7; }
+    .grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       gap: 12px;
-      text-align: left;
+      margin-top: 28px;
     }
-    .info-box {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      padding: 16px;
-      border-radius: 14px;
-    }
-    .label {
+    .item { padding: 16px; border: 1px solid #29445f; border-radius: 14px; }
+    small {
+      display: block;
+      margin-bottom: 7px;
+      color: #7f9bb8;
       font-size: 11px;
+      letter-spacing: .08em;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #64748b;
-      margin-bottom: 6px;
     }
-    .val {
-      font-size: 14px;
-      font-weight: 600;
-      color: #f1f5f9;
-      font-family: monospace;
-    }
+    code { color: #9cc5ff; overflow-wrap: anywhere; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="badge">
-      <span class="badge-dot"></span> Production Cluster Active
+  <main>
+    <span class="badge">Kubernetes ingress lab</span>
+    <h1>Application 1</h1>
+    <p>A neutral sample page used to demonstrate path-based routing through a Kubernetes Service and NGINX Ingress Controller.</p>
+    <div class="grid">
+      <div class="item"><small>Application</small><code>app1</code></div>
+      <div class="item"><small>Kubernetes Service</small><code>app1-svc:2000</code></div>
+      <div class="item"><small>Ingress route</small><code>/app1</code></div>
+      <div class="item"><small>Lab scope</small>Service discovery and HTTP routing</div>
     </div>
-    <h1>Welcome, Mohamed</h1>
-    <p class="subtitle">Multi-Application Kubernetes Routing & Ingress Engine is successfully deployed via AWS ALB.</p>
-    
-    <div class="info-grid">
-      <div class="info-box">
-        <div class="label">Service Name</div>
-        <div class="val">app1-svc:2000</div>
-      </div>
-      <div class="info-box">
-        <div class="label">Ingress Route</div>
-        <div class="val">/mohamed</div>
-      </div>
-      <div class="info-box">
-        <div class="label">Deployment</div>
-        <div class="val">app1 (3 Replicas)</div>
-      </div>
-      <div class="info-box">
-        <div class="label">Environment</div>
-        <div class="val">AWS EC2 / K8s</div>
-      </div>
-    </div>
-  </div>
+  </main>
 </body>
 </html>
