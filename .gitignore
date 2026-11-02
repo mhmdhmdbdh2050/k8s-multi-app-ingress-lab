@@ -1,0 +1,15 @@
+# Local archives and generated images
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+
+# Local environment files
+.env
+.env.*
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
