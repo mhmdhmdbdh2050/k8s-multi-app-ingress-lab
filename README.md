@@ -16,9 +16,9 @@ EC2 Worker Nodes
    ▼
 NGINX Ingress Controller
    │
-   ├── /mohamed ──► app1-svc:2000 ──► APP1
+   ├── /app1 ──► app1-svc:2000 ──► APP1
    ├── /app2    ──► app2-svc:2500 ──► APP2
-   └── /tala    ──► app3-service:9000 ──► APP3
+   └── /app3    ──► app3-service:9000 ──► APP3
 ```
 
 ## ☸️ Kubernetes Cluster
@@ -32,11 +32,22 @@ NGINX Ingress Controller
 - Kubernetes: `v1.37.1`
 - Runtime: `containerd`
 
+## 🧰 Cluster setup
+
+The lab cluster was bootstrapped with **kubeadm** and uses **containerd** as its container runtime. **Flannel** was used as the cluster network interface (CNI).
+
+- Bootstrap tool: kubeadm
+- Container runtime: containerd
+- CNI: Flannel
+- CNI selection rationale: [Add the actual reason Flannel was selected for this cluster.]
+
+> Calico was not used in this lab according to the project owner's confirmation. Do not list it as part of this cluster setup.
+
 ## 🌐 Applications
 
 ### APP1
 
-- Route: `/mohamed`
+- Route: `/app1`
 - Service: `app1-svc`
 - Service port: `2000`
 - Target port: `3000`
@@ -48,18 +59,18 @@ NGINX Ingress Controller
 - Service: `app2-svc`
 - Service port: `2500`
 - Container port: `8080`
-- Custom HTML/CSS romantic interface
+- Custom HTML/CSS demo interface
 - Uses ConfigMap: `app2-ui`
 - No external image file is required
 
 ### APP3
 
-- Route: `/tala`
+- Route: `/app3`
 - Service: `app3-service`
 - Service port: `9000`
 - Target port: `80`
 - Docker image: `app3:v1`
-- Custom `I MISS YOU` web page
+- Neutral containerized demo page
 
 ## 🔀 Ingress
 
@@ -79,9 +90,9 @@ Routes:
 
 | Path | Service | Port |
 |---|---|---:|
-| `/mohamed` | `app1-svc` | 2000 |
+| `/app1` | `app1-svc` | 2000 |
 | `/app2` | `app2-svc` | 2500 |
-| `/tala` | `app3-service` | 9000 |
+| `/app3` | `app3-service` | 9000 |
 
 Rewrite annotation:
 
@@ -232,29 +243,46 @@ kubectl get endpoints
 kubectl logs -n ingress-nginx deployment/ingress-nginx-controller
 ```
 
+## 🖼️ Screenshots
+
+The repository currently contains older application screenshots. Replace the application screenshots after the neutral demo pages are deployed and verified. Add fresh terminal captures for:
+
+- `kubectl get nodes -o wide`
+- `kubectl get pods -A -o wide`
+- `kubectl get ingress -A`
+
+Suggested README image paths (add the real files before enabling these links):
+
+- `screenshots/app1-neutral.png`
+- `screenshots/app2-neutral.png`
+- `screenshots/app3-neutral.png`
+- `screenshots/kubectl-nodes.png`
+- `screenshots/kubectl-pods.png`
+- `screenshots/kubectl-ingress.png`
+
 ## 🧪 Testing
 
 Replace `ALB-DNS` with the DNS name of the AWS Application Load Balancer.
 
 ```text
-http://ALB-DNS/mohamed
+http://ALB-DNS/app1
 http://ALB-DNS/app2
-http://ALB-DNS/tala
+http://ALB-DNS/app3
 ```
 
 Example using the current ALB hostname:
 
 ```text
-http://ing-1240743497.eu-north-1.elb.amazonaws.com/mohamed
+http://ing-1240743497.eu-north-1.elb.amazonaws.com/app1
 http://ing-1240743497.eu-north-1.elb.amazonaws.com/app2
-http://ing-1240743497.eu-north-1.elb.amazonaws.com/tala
+http://ing-1240743497.eu-north-1.elb.amazonaws.com/app3
 ```
 
 ## 🔍 Testing the NodePort
 
 ```bash
 curl -H "Host: ing-1240743497.eu-north-1.elb.amazonaws.com" \
-http://127.0.0.1:30491/mohamed
+http://127.0.0.1:30491/app1
 ```
 
 ```bash
@@ -264,7 +292,7 @@ http://127.0.0.1:30491/app2
 
 ```bash
 curl -H "Host: ing-1240743497.eu-north-1.elb.amazonaws.com" \
-http://127.0.0.1:30491/tala
+http://127.0.0.1:30491/app3
 ```
 
 ## 🛠️ Technologies Used
@@ -365,19 +393,19 @@ kubectl logs -n ingress-nginx deployment/ingress-nginx-controller
 
 - Add HTTPS using AWS Certificate Manager
 - Add a domain using Route 53
-- Add Horizontal Pod Autoscaler
 - Add Kubernetes Secrets
 - Add Persistent Volumes
+- Add Horizontal Pod Autoscaler
 - Add Prometheus and Grafana
 - Add CI/CD using GitHub Actions
 - Add Docker image registry
-- Deploy applications using Helm
+- Package application deployments with Helm (the NGINX Ingress Controller is already installed using Helm)
 - Implement NetworkPolicies
 - Add centralized logging
 
 ## 📚 Project Goal
 
-The goal is to build a realistic Kubernetes environment where multiple applications are deployed and accessed through different URL paths using a single external entry point.
+The goal is to demonstrate how multiple neutral demo applications can be exposed through path-based routing using a single external entry point.
 
 ```text
                     AWS ALB
@@ -388,7 +416,7 @@ The goal is to build a realistic Kubernetes environment where multiple applicati
         ┌──────────────┼──────────────┐
         │              │              │
         ▼              ▼              ▼
-     /mohamed        /app2          /tala
+     /app1        /app2          /app3
         │              │              │
         ▼              ▼              ▼
       APP1           APP2           APP3
@@ -409,7 +437,7 @@ The goal is to build a realistic Kubernetes environment where multiple applicati
 ✔ NodePort
 ✔ AWS Application Load Balancer
 ✔ ConfigMaps
-✔ Custom HTML/CSS
+✔ Neutral demo applications
 ✔ AWS EC2
 ✔ Helm
 ✔ Linux
@@ -420,3 +448,10 @@ The goal is to build a realistic Kubernetes environment where multiple applicati
 
 ⭐ This project demonstrates a complete Kubernetes application routing architecture from the Internet to Kubernetes Pods using AWS ALB, NodePort, and NGINX Ingress.
 
+
+
+## 🧭 Repository metadata
+
+Suggested GitHub description: **A hands-on Kubernetes lab deploying three demo applications on AWS EC2 with kubeadm, containerd, Flannel, NGINX Ingress, Helm, NodePort, and an AWS Application Load Balancer.**
+
+Suggested topics: `kubernetes`, `kubeadm`, `ingress-nginx`, `helm`, `aws`, `alb`.
