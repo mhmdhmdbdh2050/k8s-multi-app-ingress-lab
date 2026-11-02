@@ -1,26 +1,77 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>App 1 | Kubernetes Demo</title>
-<style>
-:root{color-scheme:dark;font-family:Inter,system-ui,sans-serif;background:#08111f;color:#e5eefb}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 15% 10%,#163b63,transparent 42%),#08111f}
-main{width:min(760px,100%);padding:48px;border:1px solid #29445f;border-radius:24px;background:#101e30;box-shadow:0 24px 80px #0006}
-.tag{display:inline-block;padding:7px 12px;border-radius:999px;background:#123c35;color:#7ce3c1;font-size:13px}
-h1{font-size:clamp(2rem,6vw,3.5rem);margin:22px 0 12px}p{color:#b6c7da;line-height:1.7}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:28px}
-.item{padding:16px;border:1px solid #29445f;border-radius:14px;color:#c8d8e9}
-small{display:block;color:#7f9bb8;margin-bottom:7px;text-transform:uppercase;letter-spacing:.08em}
-</style></head>
-<body><main>
-<span class="tag">Kubernetes Demo Application</span>
-<h1>Application 01</h1>
-<p>A neutral sample web application exposed through Kubernetes Service and NGINX Ingress path-based routing.</p>
-<div class="grid">
-<div class="item"><small>Application</small>app1</div>
-<div class="item"><small>Service</small>app1-svc:2000</div>
-<div class="item"><small>Ingress path</small>/app1</div>
-<div class="item"><small>Platform</small>AWS EC2 · Kubernetes</div>
-</div></main></body></html>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Neutral application page for a Kubernetes ingress routing lab.">
+  <title>Application 1 | Kubernetes Ingress Lab</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #08111f;
+      color: #e5eefb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 14% 12%, rgba(36, 150, 237, .2), transparent 38%),
+        radial-gradient(circle at 88% 86%, rgba(50, 108, 229, .18), transparent 36%),
+        #08111f;
+    }
+    main {
+      width: min(760px, 100%);
+      padding: clamp(24px, 6vw, 48px);
+      border: 1px solid #29445f;
+      border-radius: 24px;
+      background: rgba(16, 30, 48, .94);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .35);
+    }
+    .badge {
+      display: inline-flex;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #123c35;
+      color: #7ce3c1;
+      font-size: 13px;
+      letter-spacing: .02em;
+    }
+    h1 { margin: 22px 0 12px; font-size: clamp(2rem, 6vw, 3.4rem); }
+    p { color: #b6c7da; line-height: 1.7; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .item { padding: 16px; border: 1px solid #29445f; border-radius: 14px; }
+    small {
+      display: block;
+      margin-bottom: 7px;
+      color: #7f9bb8;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    code { color: #9cc5ff; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <main>
+    <span class="badge">Kubernetes ingress lab</span>
+    <h1>Application 1</h1>
+    <p>A neutral sample page used to demonstrate path-based routing through a Kubernetes Service and NGINX Ingress Controller.</p>
+    <div class="grid">
+      <div class="item"><small>Application</small><code>app1</code></div>
+      <div class="item"><small>Kubernetes Service</small><code>app1-svc:2000</code></div>
+      <div class="item"><small>Ingress route</small><code>/app1</code></div>
+      <div class="item"><small>Lab scope</small>Service discovery and HTTP routing</div>
+    </div>
+  </main>
+</body>
+</html>

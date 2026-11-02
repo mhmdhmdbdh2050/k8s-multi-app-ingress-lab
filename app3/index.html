@@ -1,21 +1,77 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>App 3 | Kubernetes Demo</title>
-<style>
-:root{font-family:Inter,system-ui,sans-serif;color:#eff6ff;background:#080f1c}
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 85% 15%,#253a71,transparent 38%),#080f1c}
-main{max-width:720px;width:100%;padding:46px;border-radius:24px;border:1px solid #34456f;background:#111c32}
-.label{color:#a5b4fc;font-size:13px;text-transform:uppercase;letter-spacing:.12em}
-h1{font-size:clamp(2rem,6vw,3.4rem);margin:18px 0}
-p{color:#c0cce0;line-height:1.8}
-code{color:#a5b4fc;background:#202d4b;padding:3px 7px;border-radius:6px}
-</style></head>
-<body><main>
-<div class="label">Kubernetes · Ingress Demo</div>
-<h1>Application 03</h1>
-<p>This neutral demo page is served by the third application Deployment and exposed through the <code>/app3</code> Ingress path.</p>
-<p>Request flow: AWS Application Load Balancer → NodePort → NGINX Ingress → Service → Pod.</p>
-</main></body></html>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Neutral application page for a Kubernetes ingress routing lab.">
+  <title>Application 3 | Kubernetes Ingress Lab</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #08111f;
+      color: #e5eefb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 14% 12%, rgba(36, 150, 237, .2), transparent 38%),
+        radial-gradient(circle at 88% 86%, rgba(50, 108, 229, .18), transparent 36%),
+        #08111f;
+    }
+    main {
+      width: min(760px, 100%);
+      padding: clamp(24px, 6vw, 48px);
+      border: 1px solid #29445f;
+      border-radius: 24px;
+      background: rgba(16, 30, 48, .94);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .35);
+    }
+    .badge {
+      display: inline-flex;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: #123c35;
+      color: #7ce3c1;
+      font-size: 13px;
+      letter-spacing: .02em;
+    }
+    h1 { margin: 22px 0 12px; font-size: clamp(2rem, 6vw, 3.4rem); }
+    p { color: #b6c7da; line-height: 1.7; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .item { padding: 16px; border: 1px solid #29445f; border-radius: 14px; }
+    small {
+      display: block;
+      margin-bottom: 7px;
+      color: #7f9bb8;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    code { color: #9cc5ff; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <main>
+    <span class="badge">Kubernetes ingress lab</span>
+    <h1>Application 3</h1>
+    <p>A neutral sample page used to demonstrate path-based routing through a Kubernetes Service and NGINX Ingress Controller.</p>
+    <div class="grid">
+      <div class="item"><small>Application</small><code>app3</code></div>
+      <div class="item"><small>Kubernetes Service</small><code>app3-service:9000</code></div>
+      <div class="item"><small>Ingress route</small><code>/app3</code></div>
+      <div class="item"><small>Lab scope</small>Service discovery and HTTP routing</div>
+    </div>
+  </main>
+</body>
+</html>

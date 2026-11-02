@@ -1,108 +1,71 @@
-# 🚀 Kubernetes Multi-App Ingress Lab
+# Kubernetes Multi-App Ingress Lab
 
-A hands-on Kubernetes project demonstrating multiple web applications exposed through Kubernetes Services, NGINX Ingress Controller, NodePort, and an AWS Application Load Balancer (ALB).
+A project-based Kubernetes lab showing how three small web applications can be built as container images and routed through Kubernetes Services and an NGINX Ingress Controller.
 
-## 📌 Architecture
+The repository documents a self-managed cluster bootstrapped with kubeadm on AWS EC2. Its current manifests describe the intended configuration; they do not prove that the cluster or AWS resources are running now.
 
-```text
-Internet
-   │
-   ▼
-AWS Application Load Balancer
-   │ HTTP :80
-   ▼
-EC2 Worker Nodes
-   │ NodePort :30491
-   ▼
-NGINX Ingress Controller
-   │
-   ├── /app1 ──► app1-svc:2000 ──► APP1
-   ├── /app2    ──► app2-svc:2500 ──► APP2
-   └── /app3    ──► app3-service:9000 ──► APP3
+## Architecture
+
+```mermaid
+flowchart LR
+    client[External client] --> alb[AWS Application Load Balancer]
+    alb --> node[EC2 worker node]
+    node --> np[Configured NodePort]
+    np --> ing[NGINX Ingress Controller]
+    ing -->|/app1| s1[app1-svc :2000]
+    ing -->|/app2| s2[app2-svc :2500]
+    ing -->|/app3| s3[app3-service :9000]
+    s1 --> p1[app1 Pod :80]
+    s2 --> p2[app2 Pod :80]
+    s3 --> p3[app3 Pod :80]
 ```
 
-## ☸️ Kubernetes Cluster
+The intended path is client → ALB → worker-node NodePort → NGINX Ingress → Service → Pod. Configure the Ingress Controller Service and the ALB target group to use the same NodePort; this repository does not include that controller Service configuration. Ingress has no host restriction, so it does not depend on an ALB DNS name.
 
-| Node | Role |
-|---|---|
-| k8s-master | Control Plane |
-| k8s-worker1 | Worker |
-| k8s-worker2 | Worker |
+## Cluster setup
 
 - Kubernetes: `v1.37.1`
-- Runtime: `containerd`
+- Bootstrap: kubeadm
+- Runtime: containerd
+- Pod network: Flannel
+- Ingress: NGINX Ingress Controller, installed with Helm
+- External entry point: AWS Application Load Balancer targeting the Ingress Controller's configured NodePort
 
-## 🧰 Cluster setup
+Flannel is the CNI recorded for this lab. The reason it was selected was not documented. Calico is not part of this cluster configuration.
 
-The lab cluster was bootstrapped with **kubeadm** and uses **containerd** as its container runtime. **Flannel** was used as the cluster network interface (CNI).
+## Applications and routes
 
-- Bootstrap tool: kubeadm
-- Container runtime: containerd
-- CNI: Flannel
-- CNI selection rationale: [Add the actual reason Flannel was selected for this cluster.]
+| Route | Deployment | Service | Service port | Container port |
+|---|---|---|---:|---:|
+| `/app1` | `app1` | `app1-svc` | 2000 | 80 |
+| `/app2` | `app2` | `app2-svc` | 2500 | 80 |
+| `/app3` | `app3-deployment` | `app3-service` | 9000 | 80 |
 
-> Calico was not used in this lab according to the project owner's confirmation. Do not list it as part of this cluster setup.
+Each application is a neutral static demo page built from its Dockerfile. The Ingress rewrite sends each route to the application's root page.
 
-## 🌐 Applications
+## Build and load the application images
 
-### APP1
+The manifests use local image names `app1:v1`, `app2:v1`, and `app3:v1`. Build them from this repository:
 
-- Route: `/app1`
-- Service: `app1-svc`
-- Service port: `2000`
-- Target port: `3000`
-- NGINX-based custom HTML application
-
-### APP2
-
-- Route: `/app2`
-- Service: `app2-svc`
-- Service port: `2500`
-- Container port: `8080`
-- Custom HTML/CSS demo interface
-- Uses ConfigMap: `app2-ui`
-- No external image file is required
-
-### APP3
-
-- Route: `/app3`
-- Service: `app3-service`
-- Service port: `9000`
-- Target port: `80`
-- Docker image: `app3:v1`
-- Neutral containerized demo page
-
-## 🔀 Ingress
-
-Main Ingress:
-
-```text
-multi-app-ingress
+```bash
+for app in app1 app2 app3; do
+  docker build --tag "$app:v1" "./$app"
+  docker save --output "$app.tar" "$app:v1"
+done
 ```
 
-Ingress class:
+Copy each generated archive to every Kubernetes node that may run the application Pod, then import it into containerd's Kubernetes namespace:
 
-```text
-nginx
+```bash
+scp app1.tar app2.tar app3.tar <user>@<node>:/tmp/
+ssh <user>@<node> 'for image in /tmp/app1.tar /tmp/app2.tar /tmp/app3.tar; do sudo ctr -n k8s.io images import "$image"; done'
 ```
 
-Routes:
+Repeat for each eligible node. The generated archives are local deployment artifacts and are ignored by Git. The older committed OCI exports were removed from this branch because their page contents did not match the current source; rebuild them from the Dockerfiles above before using the updated manifests.
 
-| Path | Service | Port |
-|---|---|---:|
-| `/app1` | `app1-svc` | 2000 |
-| `/app2` | `app2-svc` | 2500 |
-| `/app3` | `app3-service` | 9000 |
+## Apply the manifests
 
-Rewrite annotation:
-
-```yaml
-nginx.ingress.kubernetes.io/rewrite-target: /
-```
-
-## 🔌 NGINX Ingress Controller
-
-Installed with Helm:
+Review the cluster context and AWS security groups before applying any changes. Install the NGINX Ingress Controller with Helm if it is not already present:
 
 ```bash
 helm upgrade --install ingress-nginx ingress-nginx \
@@ -111,347 +74,51 @@ helm upgrade --install ingress-nginx ingress-nginx \
   --create-namespace
 ```
 
-NodePorts:
+Apply the application resources:
 
-- HTTP: `30491`
-- HTTPS: `31317`
-
-The controller is exposed as a `NodePort` so the AWS ALB can forward traffic to the EC2 worker nodes.
-
-## ☁️ AWS Application Load Balancer
-
-Traffic flow:
-
-```text
-AWS ALB
-   ↓
-EC2 Worker Node
-   ↓
-NodePort 30491
-   ↓
-NGINX Ingress
-   ↓
-Kubernetes Service
-   ↓
-Pod
+```bash
+kubectl apply -f app1/deployment-app1.yml
+kubectl apply -f app2/deployment-app2.yml
+kubectl apply -f app3/deployment-app3.yml
+kubectl apply -f ingress.yaml
 ```
 
-The ALB uses an HTTP listener on port `80` and forwards traffic to the Kubernetes NGINX NodePort `30491`.
+Configure the ALB target group to reach the worker nodes on the NodePort assigned to the Ingress Controller Service. The previous hostname recorded in the repository no longer resolves; use the DNS name from the ALB you control.
 
-## 🧩 Main Kubernetes Resources
+## Validation
 
-```text
-Deployments:
-- app1
-- app2
-- app3-deployment
+GitHub Actions builds all three images and runs Kubeconform in strict mode against the Deployments, Services, and Ingress. These are CI checks; they are not a live cluster deployment test.
 
-Services:
-- app1-svc
-- app2-svc
-- app3-service
-
-Ingress:
-- multi-app-ingress
-
-ConfigMaps:
-- app1-ui
-- app2-ui
-```
-
-## 📁 Project Structure
-
-```text
-k8s-multi-app-ingress-lab/
-│
-├── app1/
-│   └── index.html
-│
-├── app2/
-│   └── index.html
-│
-├── app3/
-│   ├── Dockerfile
-│   └── index.html
-│
-├── deployment-cloud.yaml
-├── deployment-devops.yaml
-├── deployment-k8s.yaml
-├── ingress.yaml
-└── README.md
-```
-
-## ⚙️ Useful Commands
-
-### Nodes
+Useful cluster checks after deployment:
 
 ```bash
 kubectl get nodes -o wide
-```
-
-### Pods
-
-```bash
-kubectl get pods -o wide
-```
-
-### Deployments
-
-```bash
-kubectl get deployments
-```
-
-### Services
-
-```bash
-kubectl get svc
-```
-
-### Ingress
-
-```bash
-kubectl get ingress
-```
-
-### Ingress Details
-
-```bash
+kubectl get pods -A -o wide
+kubectl get services -A
+kubectl get ingress -A
 kubectl describe ingress multi-app-ingress
 ```
 
-### NGINX Controller
-
-```bash
-kubectl get pods -n ingress-nginx
-```
-
-### NGINX Service
-
-```bash
-kubectl get svc -n ingress-nginx
-```
-
-### Endpoints
-
-```bash
-kubectl get endpoints
-```
-
-### NGINX Logs
-
-```bash
-kubectl logs -n ingress-nginx deployment/ingress-nginx-controller
-```
-
-## 🖼️ Screenshots
-
-The repository currently contains older application screenshots. Replace the application screenshots after the neutral demo pages are deployed and verified. Add fresh terminal captures for:
-
-- `kubectl get nodes -o wide`
-- `kubectl get pods -A -o wide`
-- `kubectl get ingress -A`
-
-Suggested README image paths (add the real files before enabling these links):
-
-- `screenshots/app1-neutral.png`
-- `screenshots/app2-neutral.png`
-- `screenshots/app3-neutral.png`
-- `screenshots/kubectl-nodes.png`
-- `screenshots/kubectl-pods.png`
-- `screenshots/kubectl-ingress.png`
-
-## 🧪 Testing
-
-Replace `ALB-DNS` with the DNS name of the AWS Application Load Balancer.
+Open the three routes using the current ALB DNS name:
 
 ```text
-http://ALB-DNS/app1
-http://ALB-DNS/app2
-http://ALB-DNS/app3
+http://<ALB-DNS>/app1
+http://<ALB-DNS>/app2
+http://<ALB-DNS>/app3
 ```
 
-Example using the current ALB hostname:
+## Screenshots
 
-```text
-http://ing-1240743497.eu-north-1.elb.amazonaws.com/app1
-http://ing-1240743497.eu-north-1.elb.amazonaws.com/app2
-http://ing-1240743497.eu-north-1.elb.amazonaws.com/app3
-```
+The previous browser captures showed personal demo content, an unsupported production-status claim, or host/network details, so this branch omits them. Capture fresh evidence after redeploying the updated images. See [the screenshot checklist](docs/screenshots/README.md).
 
-## 🔍 Testing the NodePort
+## Limitations
 
-```bash
-curl -H "Host: ing-1240743497.eu-north-1.elb.amazonaws.com" \
-http://127.0.0.1:30491/app1
-```
+- No AWS resources were changed by this repository update.
+- No live Kubernetes cluster was available for deployment verification.
+- The ALB DNS name must be confirmed by the project owner before use.
+- Screenshots are evidence to collect after a real deployment; none are fabricated or presented as current.
 
-```bash
-curl -H "Host: ing-1240743497.eu-north-1.elb.amazonaws.com" \
-http://127.0.0.1:30491/app2
-```
+## Repository metadata suggestions
 
-```bash
-curl -H "Host: ing-1240743497.eu-north-1.elb.amazonaws.com" \
-http://127.0.0.1:30491/app3
-```
-
-## 🛠️ Technologies Used
-
-- Kubernetes
-- Docker
-- containerd
-- NGINX
-- NGINX Ingress Controller
-- Helm
-- AWS EC2
-- AWS Application Load Balancer
-- NodePort
-- ConfigMap
-- YAML
-- HTML
-- CSS
-- Linux
-- Bash
-
-## 🎯 What This Project Demonstrates
-
-### Kubernetes
-
-- Deployments
-- Pods
-- Services
-- ClusterIP
-- NodePort
-- Ingress
-- ConfigMaps
-- Labels and selectors
-- Service discovery
-- Replica management
-
-### Networking
-
-- Kubernetes networking
-- Service-to-Pod communication
-- NodePort
-- Ingress routing
-- HTTP Host headers
-- AWS Load Balancer integration
-
-### AWS
-
-- EC2
-- Application Load Balancer
-- Target Groups
-- Health Checks
-- Security Groups
-- VPC networking
-
-### DevOps
-
-- Docker
-- Kubernetes
-- Helm
-- Linux
-- YAML
-- Containerized applications
-- Infrastructure troubleshooting
-
-## 🧠 Important Networking Concept
-
-The AWS ALB does not directly communicate with Kubernetes Services.
-
-The traffic flow is:
-
-```text
-AWS ALB
-   ↓
-EC2 Node
-   ↓
-NodePort 30491
-   ↓
-NGINX Ingress Controller
-   ↓
-Ingress Rules
-   ↓
-Kubernetes Service
-   ↓
-Pod
-```
-
-## 🩺 Troubleshooting
-
-```bash
-kubectl get pods -A
-kubectl get svc -A
-kubectl get ingress
-kubectl describe ingress multi-app-ingress
-kubectl get endpoints
-kubectl logs -n ingress-nginx deployment/ingress-nginx-controller
-```
-
-## 🚀 Future Improvements
-
-- Add HTTPS using AWS Certificate Manager
-- Add a domain using Route 53
-- Add Kubernetes Secrets
-- Add Persistent Volumes
-- Add Horizontal Pod Autoscaler
-- Add Prometheus and Grafana
-- Add CI/CD using GitHub Actions
-- Add Docker image registry
-- Package application deployments with Helm (the NGINX Ingress Controller is already installed using Helm)
-- Implement NetworkPolicies
-- Add centralized logging
-
-## 📚 Project Goal
-
-The goal is to demonstrate how multiple neutral demo applications can be exposed through path-based routing using a single external entry point.
-
-```text
-                    AWS ALB
-                       │
-                       ▼
-              NGINX Ingress
-                       │
-        ┌──────────────┼──────────────┐
-        │              │              │
-        ▼              ▼              ▼
-     /app1        /app2          /app3
-        │              │              │
-        ▼              ▼              ▼
-      APP1           APP2           APP3
-        │              │              │
-        └──────────────┼──────────────┘
-                       ▼
-                Kubernetes Pods
-```
-
-## ⭐ Project Highlights
-
-```text
-✔ Kubernetes Cluster
-✔ Multiple Applications
-✔ Multiple Deployments
-✔ Kubernetes Services
-✔ NGINX Ingress
-✔ NodePort
-✔ AWS Application Load Balancer
-✔ ConfigMaps
-✔ Neutral demo applications
-✔ AWS EC2
-✔ Helm
-✔ Linux
-✔ Kubernetes Networking
-```
-
----
-
-⭐ This project demonstrates a complete Kubernetes application routing architecture from the Internet to Kubernetes Pods using AWS ALB, NodePort, and NGINX Ingress.
-
-
-
-## 🧭 Repository metadata
-
-Suggested GitHub description: **A hands-on Kubernetes lab deploying three demo applications on AWS EC2 with kubeadm, containerd, Flannel, NGINX Ingress, Helm, NodePort, and an AWS Application Load Balancer.**
-
-Suggested topics: `kubernetes`, `kubeadm`, `ingress-nginx`, `helm`, `aws`, `alb`.
+- Description: A Kubernetes lab routing three neutral web applications on AWS EC2 with kubeadm, containerd, Flannel, NGINX Ingress, Helm, NodePort, and an Application Load Balancer.
+- Topics: `kubernetes`, `kubeadm`, `containerd`, `flannel`, `ingress-nginx`, `helm`, `aws`

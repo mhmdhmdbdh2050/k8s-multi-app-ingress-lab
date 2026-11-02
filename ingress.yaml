@@ -3,30 +3,31 @@ kind: Ingress
 metadata:
   name: multi-app-ingress
   namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx
   rules:
-  - host: ing-1240743497.eu-north-1.elb.amazonaws.com
-    http:
-      paths:
-      - path: /app1
-        pathType: Prefix
-        backend:
-          service:
-            name: app1-svc
-            port:
-              number: 2000
-      - path: /app2
-        pathType: Prefix
-        backend:
-          service:
-            name: app2-svc
-            port:
-              number: 2500
-      - path: /app3
-        pathType: Prefix
-        backend:
-          service:
-            name: app3-service
-            port:
-              number: 9000
+    - http:
+        paths:
+          - path: /app1
+            pathType: Prefix
+            backend:
+              service:
+                name: app1-svc
+                port:
+                  number: 2000
+          - path: /app2
+            pathType: Prefix
+            backend:
+              service:
+                name: app2-svc
+                port:
+                  number: 2500
+          - path: /app3
+            pathType: Prefix
+            backend:
+              service:
+                name: app3-service
+                port:
+                  number: 9000
